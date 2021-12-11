@@ -1,4 +1,4 @@
-import { Stack, StackProps } from "aws-cdk-lib";
+import { CfnOutput, Stack, StackProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { HitCounter } from "./hitcounter";
 import { TableViewer } from "cdk-dynamo-table-viewer";
@@ -6,6 +6,9 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as apigw from "aws-cdk-lib/aws-apigateway";
 
 export class WorkshopStack extends Stack {
+  public readonly hcViewerUrl: CfnOutput;
+  public readonly hcEndpoint: CfnOutput;
+
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
@@ -19,14 +22,21 @@ export class WorkshopStack extends Stack {
       downstream: hello,
     });
 
-    new apigw.LambdaRestApi(this, "Endpoint", {
+    const gateway = new apigw.LambdaRestApi(this, "Endpoint", {
       handler: helloWithCounter.handler,
     });
 
-    new TableViewer(this, "ViewHitCounter", {
+    const tv = new TableViewer(this, "ViewHitCounter", {
       title: "Hello Hits",
       table: helloWithCounter.table,
       sortBy: "-hits",
+    });
+
+    this.hcEndpoint = new CfnOutput(this, "GatewayUrl", {
+      value: gateway.url,
+    });
+    this.hcViewerUrl = new CfnOutput(this, "TableViewerUrl", {
+      value: tv.endpoint,
     });
   }
 }

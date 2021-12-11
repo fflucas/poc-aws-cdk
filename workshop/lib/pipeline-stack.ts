@@ -1,5 +1,6 @@
 import * as cdk from "aws-cdk-lib";
 import {
+  CodeBuildStep,
   CodePipeline,
   CodePipelineSource,
   ShellStep,
@@ -20,9 +21,30 @@ export class WorkshopPipelineStack extends cdk.Stack {
       }),
     });
 
-    pipeline.addStage(
-      new WorkshopPipelineStage(this, "Deploy", {
-        env: { account: "858319683849", region: "sa-east-1" },
+    const deploy = new WorkshopPipelineStage(this, "Deploy", {
+      env: { account: "858319683849", region: "sa-east-1" },
+    });
+    const deployStage = pipeline.addStage(deploy);
+
+    deployStage.addPost(
+      new CodeBuildStep("TestViewerEndpoint", {
+        projectName: "TestViewerEndpoint",
+        envFromCfnOutputs: {
+          ENDPOINT_URL: deploy.hcViewerUrl,
+        },
+        commands: ["curl -Ssf $ENDPOINT_URL"],
+      }),
+
+      new CodeBuildStep("TestAPIGatewayEndpoint", {
+        projectName: "TestAPIGatewayEndpoint",
+        envFromCfnOutputs: {
+          ENDPOINT_URL: deploy.hcEndpoint,
+        },
+        commands: [
+          "curl -Ssf $ENDPOINT_URL",
+          "curl -Ssf $ENDPOINT_URL/hello",
+          "curl -Ssf $ENDPOINT_URL/test",
+        ],
       })
     );
   }
