@@ -16,6 +16,7 @@ export class WorkshopPipelineStack extends cdk.Stack {
         input: CodePipelineSource.gitHub("fflucas/poc-aws-cdk", "main"),
         installCommands: ["npm install -g aws-cdk"],
         commands: ["cd workshop", "npm ci", "npm run build", "npx cdk synth"],
+        primaryOutputDirectory: "workshop/cdk.out",
       }),
     });
   }
