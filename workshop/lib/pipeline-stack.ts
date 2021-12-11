@@ -15,12 +15,15 @@ export class WorkshopPipelineStack extends cdk.Stack {
       pipelineName: "WorkshopPipeline",
       synth: new ShellStep("SynthStep", {
         input: CodePipelineSource.gitHub("fflucas/poc-aws-cdk", "main"),
-        installCommands: ["npm install -g aws-cdk"],
         commands: ["cd workshop", "npm ci", "npm run build", "npx cdk synth"],
         primaryOutputDirectory: "workshop/cdk.out",
       }),
     });
 
-    pipeline.addStage(new WorkshopPipelineStage(this, "Deploy"));
+    pipeline.addStage(
+      new WorkshopPipelineStage(this, "Deploy", {
+        env: { account: "858319683849", region: "sa-east-1" },
+      })
+    );
   }
 }
