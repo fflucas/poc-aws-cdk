@@ -4,7 +4,7 @@ import { WorkshopStack } from "./workshop-stack";
 
 export class WorkshopPipelineStage extends Stage {
   constructor(scope: Construct, id: string, props?: StageProps) {
-    super(scope, id);
+    super(scope, id, props);
 
     new WorkshopStack(this, "WebService");
   }
